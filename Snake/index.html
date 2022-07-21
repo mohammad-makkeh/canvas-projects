@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Snake</title>
+	<link rel="stylesheet" href="snakeCss.css">
+</head>
+<body>
+	<canvas id="gameBoard"></canvas>
+	<div class="score"> 0 </div>
+	<div class="msg"> Press Space to restart </div>
+
+	<script>
+		"use strict"
+
+		const canvas = document.getElementById("gameBoard");
+		const c = canvas.getContext("2d");
+		const scoreDisplay = document.querySelector(".score");
+		const msg = document.querySelector(".msg");
+
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		
+		window.addEventListener("resize",()=>{
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+		})
+
+		let snakeWidth = 10;
+		let snakeColor = "#fff";
+		let snakeSpeed = 4;
+		let foodSize = 4;
+		let foodColor = "yellow"
+		let lost = false;
+		let started = false;
+		let score = 0;
+		let accelerate = 1;
+
+
+		class Snake{
+			constructor(x, y){
+				this.x = x;
+				this.y = y;
+				this.v = {
+					x : 0,
+					y : 0
+				};
+			}
+
+			draw(){
+				c.beginPath();
+				c.fillStyle = snakeColor;
+				c.arc(this.x, this.y, snakeWidth, 0, Math.PI*2, false);
+				c.fill();
+			}
+
+			turn(direction){
+				if(!direction) return;
+				this.v.x = snakeSpeed * direction[0];
+				this.v.y = snakeSpeed * direction[1];
+			}
+
+			update(){
+				this.x += this.v.x*accelerate;
+				this.y += this.v.y*accelerate;
+				this.draw()
+			}
+		};
+
+
+
+
+
+		let SnakeBodySegment = function(x=0, y=0){
+			this.x = x;
+			this.y = y;
+			return this;
+		};
+
+		SnakeBodySegment.prototype.draw = function(){
+			c.beginPath();
+			c.fillStyle = snakeColor;
+			c.arc(this.x, this.y, snakeWidth, 0, Math.PI*2, false);
+			c.fill();
+		};
+
+
+		const snakeHead = new Snake(canvas.width/2, canvas.height/2);
+
+		let food;
+
+		let snakeBody = [snakeHead];
+
+		
+		
+		function growSnake(n){
+			if(!n) return;
+			let tail = snakeBody[snakeBody.length - 1];
+			let newBodySegment = new SnakeBodySegment(tail.x, tail.y);
+			snakeBody.push(newBodySegment);
+			growSnake(n-1);
+		}
+
+		function generateFood(){
+			let x, y;
+			let positions = snakeBody.map(segment=>{
+			    return { x : segment.x, y : segment.y};
+			})
+			do{
+				x = Math.random()*(canvas.width -2*foodSize) + foodSize;
+				y = Math.random()*(canvas.height -2*foodSize) + foodSize;
+				
+			} while(
+				positions.some(s=>{
+					let dx = s.x - x;
+					let dy = s.y - y;
+					return Math.hypot(dx, dy) - snakeWidth - foodSize < 1;
+				})
+			);
+			foodSize = Math.random() * 8 + 4;
+			let food = {
+				x : x,
+				y : y,
+
+				update : function(){
+					c.beginPath();
+					c.fillStyle = foodColor;
+					c.arc(x, y, foodSize, 0, Math.PI*2, false);
+					c.fill();
+				}
+			}
+			return food;
+		}
+
+
+
+		function init(){
+			msg.classList.toggle("hide");
+			lost = false;
+			started = false;
+			snakeBody = [snakeHead];
+			growSnake(10);
+			snakeHead.x = canvas.width/2;
+			snakeHead.y = canvas.height/2;
+			snakeHead.v = {x:0,y:0};
+			snakeColor = "#fff";
+			food = generateFood();
+			score = 0;
+			scoreDisplay.innerHTML = score;
+			animate();
+		}
+		init();
+
+		function animate(){
+			let raf = requestAnimationFrame(animate);
+			c.fillStyle = "#000";
+			c.fillRect(0,0, canvas.width, canvas.height);
+			let x = snakeHead.x;
+			let y = snakeHead.y;
+			snakeHead.update();
+			for(let i = 1; i < snakeBody.length ; i++){
+				let tmpX = snakeBody[i].x;
+				let tmpY = snakeBody[i].y;
+				snakeBody[i].x = x;
+				snakeBody[i].y = y;
+				x = tmpX;
+				y = tmpY;				
+				snakeBody[i].draw();
+				//check for dying
+				let dx = snakeHead.x == snakeBody[i].x;
+				let dy = snakeHead.y == snakeBody[i].y;
+				if( dx && dy && started && raf > 10){
+					lost = true;
+				}
+			}
+
+
+
+			//check if lost
+			
+			//NOTE: never use ternary oparetor like this
+			lost = lost ? lost : snakeHead.x+snakeWidth > canvas.width + 5 ? true : snakeHead.x-snakeWidth < -5 ? true : snakeHead.y+snakeWidth > canvas.height + 5 ? true : snakeHead.y-snakeWidth < -5 ? true : false;
+
+
+			if(lost){
+				snakeColor = "#f00";
+				snakeBody.forEach(segment=>segment.draw());
+				cancelAnimationFrame(raf);
+				msg.classList.toggle("hide");
+				return;
+			}
+
+			//ate food
+			food.update();
+			let dx = snakeHead.x - food.x;
+			let dy = snakeHead.y - food.y;
+			let distance = Math.hypot(dx, dy);
+			if(distance - snakeWidth - foodSize < 1){
+				growSnake(Math.floor(foodSize) * 2);
+				food = generateFood();
+				score++;
+				scoreDisplay.innerHTML = score;
+			}
+		}
+
+
+		let directionMap = new Map(Object.entries({
+			"w" : [0, -1],
+			"d" : [1, 0],
+			"s" : [0, 1],
+			"a" : [-1, 0],
+			"arrowup" : [0, -1],
+			"arrowright" : [1, 0],
+			"arrowdown" : [0, 1],
+			"arrowleft" : [-1, 0],
+		}));
+
+		window.addEventListener("keydown",(e)=>{
+			started = true;
+			if(e.key == "Shift"){
+				accelerate = 1.8;
+				snakeHead.turn();
+			}
+			let key = directionMap.get(e.key.toLowerCase());
+			if(key){
+				if(key[1] && snakeHead.v.y) return;
+				if(key[0] && snakeHead.v.x) return;
+				snakeHead.turn(key);
+			}
+			if(e.key == " " && lost){
+				init();
+			}
+			
+		})
+		window.addEventListener("keyup",(e)=>{
+			if(e.key == "Shift"){
+				accelerate = 1;
+			}
+		})
+
+	</script>
+
+</body>
+</html>

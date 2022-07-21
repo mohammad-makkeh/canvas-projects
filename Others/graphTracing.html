@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Graph Tracer </title>
+	<style>
+		*{
+			margin: 0;
+			box-sizing: border-box;
+			user-select: none;
+		}
+		body{
+			display: grid;
+			grid-template-columns: auto 1fr;
+			place-items: center;
+		}
+		.inputArea{
+			display: flex;
+			flex-direction: column;
+			gap: 30px;
+			align-items: center;
+			justify-content: center;			
+		}
+		.inputArea h1, .inputArea label{
+			font-size: 2.5rem;
+			font-family: cursive;
+			text-align: center;
+		}
+		.inputArea label{
+			font-size: 1.8rem;
+		}
+		.inputArea input{
+			width: 300px;
+			height: 60px;
+			font-size: 1.8rem;
+		}
+
+	</style>
+
+</head>
+<body>
+
+	<canvas id="canvas"></canvas>
+	<div class="inputArea">
+		<h1> Enter The Equation </h1>
+		<div class="group">
+			<label for="equation"> y = </label>
+			<input type="text" name = "equation" placeholder="x*x">	
+		</div>
+		
+	</div>
+
+	<script>
+		const c = canvas.getContext('2d');
+
+		canvas.width = innerWidth / 2;
+		canvas.height = innerHeight;
+
+		window.addEventListener("resize",()=>{
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+			init();
+		});
+
+		const padding = 30;
+
+		const origin = {
+			x : padding,
+			y : padding,
+		};
+
+		function drawGraphTemplate(){
+			c.lineWidth = 1.5;
+			c.beginPath();
+			c.moveTo(padding, canvas.height - padding);
+			c.lineTo(origin.x, origin.y);
+			c.lineTo(canvas.width - padding*3, padding);
+			c.stroke();
+			c.closePath();
+		}
+
+
+		class Pixel{
+			constructor(){
+				this.y = origin.y;
+				// this.x = 300 + Math.cos(this.y / 20) * 100;				
+			}
+
+			draw(){
+				c.beginPath();
+				c.moveTo(this.x,this.y);
+				this.update();
+				c.lineTo(this.x, this.y);
+				c.stroke();
+				c.closePath();
+			}
+
+			update(){
+				this.y += 0.7;
+				this.x = 300 + Math.cos(this.y / 20) * 100;
+				// this.x = (this.y * this.y) / 30;
+			}
+		}
+
+
+		let graph;
+		function init(){
+			c.translate(0, canvas.height );
+			c.rotate(-Math.PI/2);
+			drawGraphTemplate();
+			graph = new Pixel();
+			animate();
+		}
+		init();
+
+		function animate(){
+			graph.draw();
+			if(graph.x > canvas.width || graph.y > canvas.height){
+				return;
+			}
+			requestAnimationFrame(animate);
+		}
+
+
+		
+
+	</script>
+
+</body>
+</html>

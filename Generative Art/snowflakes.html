@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Generated Snowflakes </title>
+	<style>
+		body{
+			margin: 0;
+			overflow: hidden;
+		}
+		canvas{
+			width: 100%;
+			height: 100vh;
+			background-color: #111;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script>
+	
+		const canvas = document.querySelector("canvas");
+		const c = canvas.getContext('2d');
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+
+		//constants
+
+		const maxLevel = 6;
+		      branches = 2,
+		      lineLength = 150,
+		      flakes = 5;
+
+
+		const angle = Math.PI * 2 * 0.85;
+
+		const allFlakes = [];
+
+
+
+		function animateFlake(){
+
+		}
+
+
+
+		class Flake{
+			constructor(x, y, flakes, lineLength, maxLevel, angle, clr){
+				this.x = x;
+				this.y = y;
+				this.flakes = flakes;
+				this.angle = angle;
+				this.maxLevel = maxLevel;
+				this.clr = clr;
+				this.lineLength = lineLength;
+				allFlakes.push(this);
+				this.update();
+			}
+
+			drawLine(level){
+				console.log('.');
+				if(level > this.maxLevel) return;
+
+				c.lineWidth = 2;
+				c.beginPath();
+				c.moveTo(0, 0);
+				c.lineTo(this.lineLength, 0);
+				c.stroke();
+				for(let i = 0 ; i  < branches ; i++){
+					c.save();
+					c.translate(this.lineLength * branches * i / (branches+1), 0);
+					c.scale(0.5, 0.5);
+						c.save();
+						c.rotate(this.angle);
+						this.drawLine(level+1);
+						c.restore();
+
+						c.save();
+						c.rotate(-this.angle);
+						this.drawLine(level+1);
+						c.restore();
+					c.restore();
+				}
+			}
+
+			drawFlake(){
+				c.strokeStyle = this.clr;
+				c.save();
+				c.translate(this.x, this.y);
+				for(let i = 0 ; i < this.flakes ; i++){
+					this.drawLine(0);
+					c.rotate(Math.PI * 2 / this.flakes);
+				}
+				c.restore();
+			}
+
+			update(){
+				this.drawFlake();
+			}
+
+
+		}
+
+
+		window.addEventListener("click",(e)=>{
+			let f = new Flake(e.clientX, e.clientY, Math.floor(between(3, 6)), Math.floor(between(40, 100)), Math.floor(between(1, 10)), Math.PI * 2 * 0.85,"#fff");
+		});
+
+
+		//utility
+		function between(min, max){
+			return Math.random() * (max - min) + min;
+		}
+
+	</script>
+</body>
+</html>

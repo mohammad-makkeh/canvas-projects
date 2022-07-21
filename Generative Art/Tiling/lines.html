@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Line Tiling </title>
+	<style>
+		*{
+			margin: 0;
+		}
+		body{
+			display: grid;
+			place-items: center;
+			min-height: 100vh;
+		}
+		canvas{
+			width: 400px;
+			height: 400px;
+			background-color: olivedrab;
+			border: 5px solid #050901;
+			padding: 10px;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id="canvas"></canvas>
+	
+
+	<script>
+		canvas.width = 400;
+		canvas.height = 400;
+		const c = canvas.getContext('2d');
+
+		let fiftyFifty = function(advantage=0){
+			return Math.random() + advantage > 0.5 ? true : false;
+		};
+
+	// Generate Lines:
+
+		let rtl,
+			x, y,
+			segmentSize, segmentsNumber;
+
+		segmentSize = 20;
+		segmentsNumber = Math.floor(canvas.width / segmentSize);
+
+		c.lineWidth = 3;
+
+		for( let i = 0 ; i < segmentsNumber ; i++ ){
+			for( let j = 0 ; j < segmentsNumber ; j++ ){
+				rtl = fiftyFifty();
+				x = j*segmentSize;
+				y = i*segmentSize;
+				if(rtl){
+					c.moveTo(x + segmentSize, y);
+					c.lineTo(x, y + segmentSize);
+				}
+				else{
+					c.moveTo(x, y);
+					c.lineTo(x + segmentSize, y + segmentSize);
+				}
+				c.stroke();	
+			}
+		}
+
+
+
+	//Generate Circles:
+
+
+		// segmentSize = 25;
+		// segmentsNumber = Math.floor(canvas.width / segmentSize);
+
+		// let topSide, right,
+		// 	x, y,
+		// 	r = segmentSize/2;
+
+		// let previous;
+
+		// c.lineWidth = 10;
+
+
+		// for( let i = 0 ; i < segmentsNumber ; i++ ){
+		// 	for( let j = 0 ; j < segmentsNumber ; j++ ){
+		// 		drawRandomArc(i, j);
+		// 	}
+		// }
+
+		// function drawRandomArc(i, j){
+		// 	topSide = fiftyFifty();
+		// 	right = fiftyFifty();
+		// 	x = j*segmentSize;
+		// 	y = i*segmentSize;
+
+		// 	c.beginPath();
+		// 	if(topSide){
+		// 		if(right){
+		// 			previous = "topRight";
+		// 			c.arc( x + segmentSize, y , r, Math.PI / 2, Math.PI );
+		// 		}
+		// 		else{
+		// 			previous = "topLeft";
+		// 			c.arc( x , y, r, 0, Math.PI / 2 );
+		// 		}
+		// 	}
+		// 	else{
+		// 		if(right){
+		// 			previous = "bottomRight";
+		// 			c.arc( x + segmentSize, y + segmentSize, r, Math.PI, 3*Math.PI/2 );
+		// 		}
+		// 		else{
+		// 			previous = "bottomLeft";
+		// 			c.arc( x, y+segmentSize, r, 3*Math.PI/2, 2*Math.PI );
+		// 		}
+
+		// 	}
+		// 	c.stroke();
+		// 	c.closePath();
+		// }
+
+
+
+
+
+
+
+
+
+
+
+
+	</script>
+
+</body>
+</html>

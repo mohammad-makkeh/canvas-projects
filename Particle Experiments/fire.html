@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Fire mouse trail </title>
+	<style>
+		*{
+			margin: 0;
+		}
+		#canvas{
+			position: absolute;
+			background-color: #050901;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			filter: blur(15px) contrast(5);
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id="canvas"></canvas>
+	<script>
+		//canvas
+
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+		window.addEventListener("resize",()=>{
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		})
+
+		const c = canvas.getContext('2d');
+		let particles = [];
+
+		let mouse = {
+			x : null,
+			y : null
+		};
+
+
+		class Particle{
+			constructor(x, y, r, v, clr){
+				this.x = x;
+				this.y = y;
+				this.r = r;
+				this.v = v;
+				this.clr = clr;
+			}
+
+			draw(){
+				c.beginPath();
+				c.fillStyle = this.clr;
+				c.arc(this.x, this.y, this.r, 0, Math.PI*2, false);
+				c.fill();
+			}
+
+			update(){
+				this.x += this.v.x;
+				this.y += this.v.y;
+				this.r = this.r - 0.7 < 0 ? 0 : this.r - 0.7;
+				this.draw();
+			}
+		}
+
+		function between(min, max){
+			return Math.random() * (max - min) + min;
+		}
+
+		window.addEventListener("mousemove", generateParticles);
+
+		function generateParticles(e){
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+
+			for(i = 0 ; i < 4 ; i++){
+				let r = between(20, 30);
+				let v = {
+					x : between(-5, 5),
+					y : between(-5, 5),
+				};
+				let clr = `hsl(${between(30, 50)}, 100%, 50%)`;
+				let particle = new Particle(mouse.x, mouse.y, r, v, clr);
+				particles.push(particle);
+				// particle.update();
+			}
+		}
+
+		function animate(){
+			let raf = requestAnimationFrame(animate);
+			c.fillStyle = "#05090122";
+			c.fillRect(0, 0, canvas.width, canvas.height);
+			particles.forEach((particle, i)=>{
+				particle.update();
+				if(particle.r <= 0.3){
+					particles.splice(i, 1);
+				}
+			});
+		}
+		animate();
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>APi</title>
+	<style>
+		body{
+			margin: 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			background-color: darkseagreen;
+			flex-direction: column;
+			perspective: 200px;
+			gap: 3rem;
+			user-select: none;
+		}
+		.container{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 1rem;
+			flex-wrap: wrap;
+			padding: 1rem;
+		}
+	
+		button{
+			border: none;
+			border-radius: 10px;
+			padding: 1rem 1.7rem;
+			font: 1.2rem sans-serif;
+			cursor: pointer;
+		}	
+
+		.cardWrapper{
+			width: 130px;
+			height: 200px;
+			perspective: 500px;
+		}
+
+		.card{
+			width: 100%;
+			height: 100%;
+			transform-style: preserve-3d;
+			transition: .6s;
+			box-shadow: 0 10px 10px -3px rgba(0, 0, 0, .45);
+			border-radius: 5px;
+			position: relative;
+		}
+
+		.card img{
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			backface-visibility: hidden;
+		}
+
+		.backDesign{
+			transform: rotateY(-180deg);
+			border-radius: 5px;
+		}
+
+		.card img:not(.backDesign){
+			z-index: 2;
+		}
+
+		.faceDown{
+			transform: rotateY(180deg);
+		}
+
+	</style>
+</head>
+<body>
+	<div class="container">
+		
+	</div>
+	<button>add deck</button>
+
+	<script>
+		const container = document.querySelector('.container');
+		const btn = document.querySelector('button');
+		let deckID;
+		
+		btn.addEventListener('click',()=>{
+			fetch('http://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1')
+				.then(response => response.json())
+				.then(response => {
+					console.log(response)
+					deckID = response.deck_id;
+					return deckID;
+				})
+				.then(id=>{
+					fetch(`http://deckofcardsapi.com/api/deck/${id}/draw/?count=52`)
+						.then(response => response.json())
+						.then(response =>{
+							let cards = response.cards
+							for(let card of cards){
+								let backDesign = new Image();
+								backDesign.src = 'https://i.pinimg.com/564x/9c/40/68/9c40687ab785d11473d2f522e3a16f2d.jpg';
+								backDesign.classList.add('backDesign');
+								let cardImage = new Image();							
+								cardImage.src=card.image;
+								let cardWrapper = document.createElement('div');
+								cardWrapper.classList.add('cardWrapper');
+								let domCard = document.createElement('div');
+								domCard.classList.add('card');
+								domCard.classList.add('faceDown');
+								domCard.append(cardImage);
+								domCard.append(backDesign);
+								cardWrapper.append(domCard);
+								container.append(cardWrapper);
+								domCard.addEventListener("click",flipCard)
+							}
+							
+						});
+				});
+		});
+
+		btn.click();
+		
+		function flipCard(e){
+			let card = e.target;
+			for(let p of e.path){
+				if(p.classList && p.classList.contains('card')) card = p;
+			}
+			card.classList.toggle('faceDown')
+		}		
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Connected Particles </title>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		#canvas{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+
+	<script>
+		const c = canvas.getContext('2d');
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+
+		window.addEventListener("resize",()=>{
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+		})
+
+////////////////////////////////////////
+
+		let mouse = {
+			x:null,
+			y:null
+		};
+
+		let particles = [];
+		let gravity = 0.7;	//increase this to get higher bounces off the floor
+		let lastTime = 0;
+		let speed = 0;	//increase this to make it slower (yeah the name makes no sense)
+		let mouseRadius = 80;	//range where particles are generated around the mouse
+		let clicked = false;
+
+
+////////////////////////////////////////
+
+		window.addEventListener("mousedown",()=>{
+			clicked = true;
+			for(let i = 0 ; i < 5 ; i++){
+				let r = Math.random()* 5 + 3;
+				let min = mouse.x - mouseRadius;
+				let max = mouse.x + mouseRadius;
+				min = min - r < 0 ? r : min;
+				max = max + r > canvas.width ? canvas.width - r : max;
+				let x = Math.random()*(max -min) + min;
+				min = mouse.y - mouseRadius;
+				max = mouse.y + mouseRadius;
+				min = min - r < 0 ? r : min;
+				max = max + r > canvas.height ? canvas.height - r : max;
+				let y = Math.random()*(max -min) + min;
+				let clr = `hsl(${Math.random()*360}, 100%, 50%)`;
+				let v = {
+					x: Math.random() * 4 - 2,
+					y: Math.random() * 4 - 2 
+				};
+				particles.push(new Particle(x, y, r, v, clr));
+			}
+		})
+
+		window.addEventListener("mouseup",()=>{
+			clicked = false;
+		})
+
+
+		window.addEventListener("mousemove",(e)=>{
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+			if(clicked){
+				let r = Math.random()* 5 + 2;
+				let min = mouse.x - mouseRadius;
+				let max = mouse.x + mouseRadius;
+				min = min - r < 0 ? r : min;
+				max = max + r > canvas.width ? canvas.width - r : max;
+				let x = Math.random()*(max -min) + min;
+				min = mouse.y - mouseRadius;
+				max = mouse.y + mouseRadius;
+				min = min - r < 0 ? r : min;
+				max = max + r > canvas.height ? canvas.height - r : max;
+				let y = Math.random()*(max -min) + min;
+				let clr = `hsl(${Math.random()*360}, 100%, 50%)`;
+				let v = {
+					x: Math.random() * 4 - 2,
+					y: Math.random() * 4 - 2 
+				};
+				particles.push(new Particle(x, y, r, v, clr));
+			}
+		})
+
+
+		class Particle{
+			constructor(x, y, r, v, clr){
+				this.x = x;
+				this.y = y;
+				this.r = r;
+				this.v = v;
+				this.clr = clr;
+				this.weight = 0.3;
+				this.noEnergy = false;
+			}
+
+			distanceFrom(particle){
+				let dx = this.x - particle.x;
+				let dy = this.y - particle.y;
+				return Math.hypot(dx, dy);
+			}
+
+			drawLineTo(particle){
+				c.save();
+				c.beginPath();
+				c.strokeStyle = this.clr;
+				c.lineWidth = Math.min(this.r, particle.r);
+				c.moveTo(this.x, this.y);
+				c.lineTo(particle.x, particle.y);
+				c.globalAlpha = 0.7;
+				c.stroke();
+				c.restore();
+			}
+
+			draw(){
+				c.beginPath();
+				c.fillStyle = this.clr;
+				c.arc(this.x, this.y, this.r, 0, Math.PI*2, false);
+				c.fill();
+			}
+
+			update(){
+
+				if(Math.abs(this.v.y) <= 0.2 && this.y + this.r >= canvas.height)
+					this.noEnergy = true;
+
+				if(this.y + this.r >= canvas.height){
+					this.y = canvas.height - this.r;
+					this.v.y = -this.v.y * gravity;	
+				}
+
+				if(this.x + this.r >= canvas.width || this.x - this.r <= 0){
+					this.x = this.x - this.r > 0 ? canvas.width - this.r : this.r;
+					this.v.x = -this.v.x * gravity;
+				}
+				
+				this.v.y += this.weight;
+				this.x += this.v.x;
+				this.y += this.v.y;
+
+				this.draw();
+			}
+		}
+
+		
+
+
+		function connect(){
+			for(let i = 0 ; i < particles.length ; i++){
+				for( let j = i + 1 ; j < particles.length ; j++){
+					let distance = particles[i].distanceFrom(particles[j]);
+					if(distance < 75){
+						particles[i].drawLineTo(particles[j]);
+					}
+				}
+			}
+		}
+
+
+
+		function init(){
+			animate(speed);
+		}init();
+
+
+		
+		function animate(timeStamp){
+			requestAnimationFrame(animate);
+			if(timeStamp - lastTime < speed){
+				return;
+			}
+
+			lastTime = timeStamp;
+			c.fillStyle = '#0009';
+			c.fillRect(0, 0, canvas.width, canvas.height);
+			particles.forEach((particle, i)=>{
+				if(particle.noEnergy){
+					particles.splice(i, 1);
+				}
+				particle.update();
+			})
+			connect();
+		}
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Creepy Eyes </title>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		#canvas{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: #333;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+
+	<script>
+		const c = canvas.getContext('2d');
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+
+		window.addEventListener("resize",()=>{
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+			init();
+		})
+
+		let mouse = {
+			x : canvas.width/2,
+			y : canvas.height/2
+		};
+		window.addEventListener("mousemove",(e)=>{
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+		});
+
+		let eyes = [];
+		const numberOfEyes = canvas.width * 0.1;
+		const protection = 5000;
+		let counter = 0;
+		let overlapping = false;
+
+
+		class Eye{
+			constructor(x, y, r){
+				this.x = x;
+				this.y = y;
+				this.r = r;
+				this.iris = {
+					x : this.x,
+					y : this.y,
+					r : this.r * 0.7
+				};
+				this.pupil = {
+					x : this.x,
+					y : this.y,
+					r : this.r * 0.3
+				};
+				this.clr = `hsl(${between(70, 250)}, 100%, 50%)`;
+			}
+			draw(){
+				c.beginPath();
+				c.fillStyle = "white";
+				c.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+				c.fill();
+				c.closePath();
+				c.beginPath();
+				c.fillStyle = this.clr;
+				c.arc(this.iris.x, this.iris.y, this.iris.r, 0, Math.PI * 2);
+				c.fill();
+				c.closePath();
+				c.beginPath();
+				c.fillStyle = "black";
+				c.arc(this.pupil.x, this.pupil.y, this.pupil.r, 0, Math.PI * 2);
+				c.fill();
+				c.closePath();
+				c.beginPath();
+				c.fillStyle = "gray";
+				c.arc(this.pupil.x, this.pupil.y, this.pupil.r * 0.8, Math.PI , 3*Math.PI/2);
+				c.fill();
+				c.closePath();
+			}
+			update(){
+				let dx = this.x - mouse.x;
+				let dy = this.y - mouse.y;
+				let distance = Math.hypot(dx, dy) - this.r;
+				let angle = Math.atan2(dy, dx);
+				let irisOffset, pupilOffset;
+				if(distance < -this.iris.r){
+					irisOffset = this.r - Math.abs(distance);
+					pupilOffset = this.r - Math.abs(distance);
+				}
+				else if(distance < -this.pupil.r){
+					irisOffset = this.r - this.iris.r;
+					pupilOffset = this.r - Math.abs(distance);
+				}
+				else{
+					irisOffset = this.r - this.iris.r;
+					pupilOffset = this.r - this.pupil.r;	
+				}
+				this.iris.x = this.x - Math.cos(angle) * irisOffset;
+				this.iris.y = this.y - Math.sin(angle) * irisOffset;
+
+				this.pupil.x = this.x -  Math.cos(angle) * pupilOffset;
+				this.pupil.y = this.y - Math.sin(angle) * pupilOffset;
+			}
+
+		}
+		function createEyesTop(){
+			counter = 0
+			for(let i = 0 ; i < numberOfEyes && counter < protection ; i++ , counter++){
+				let eye = {
+					r : between(10, 70),
+				};
+				eye.x = between(eye.r, canvas.width - eye.r);
+				eye.y = between(eye.r, 100);
+			
+
+				for(let j = 0 ; j < eyes.length ; j++){
+					let dx = eye.x - eyes[j].x;
+					let dy = eye.y - eyes[j].y;
+					let distance = Math.hypot(dx, dy) - eye.r - eyes[j].r;
+					if(distance < 1){
+						overlapping = true;
+						break;
+					}
+				}
+				if(overlapping){
+					overlapping = false;
+					i--;
+				}
+				else{
+					eyes.push(new Eye(eye.x, eye.y, eye.r));
+				}
+			}
+		}
+		function createEyesRight(){
+			counter = 0
+			for(let i = 0 ; i < numberOfEyes && counter < protection ; i++ , counter++){
+				let eye = {
+					r : between(10, 70),
+				};
+				eye.x = between(canvas.width - 100, canvas.width - eye.r);
+				eye.y = between(eye.r, canvas.height - eye.r);
+			
+
+				for(let j = 0 ; j < eyes.length ; j++){
+					let dx = eye.x - eyes[j].x;
+					let dy = eye.y - eyes[j].y;
+					let distance = Math.hypot(dx, dy) - eye.r - eyes[j].r;
+					if(distance < 1){
+						overlapping = true;
+						break;
+					}
+				}
+				if(overlapping){
+					overlapping = false;
+					i--;
+				}
+				else{
+					eyes.push(new Eye(eye.x, eye.y, eye.r));
+				}
+			}
+		}
+		function createEyesBottom(){
+			counter = 0
+			for(let i = 0 ; i < numberOfEyes && counter < protection ; i++ , counter++){
+				let eye = {
+					r : between(10, 70),
+				};
+				eye.x = between(eye.r, canvas.width - eye.r);
+				eye.y = between(canvas.height - 100, canvas.height - eye.r);
+			
+
+				for(let j = 0 ; j < eyes.length ; j++){
+					let dx = eye.x - eyes[j].x;
+					let dy = eye.y - eyes[j].y;
+					let distance = Math.hypot(dx, dy) - eye.r - eyes[j].r;
+					if(distance < 1){
+						overlapping = true;
+						break;
+					}
+				}
+				if(overlapping){
+					overlapping = false;
+					i--;
+				}
+				else{
+					eyes.push(new Eye(eye.x, eye.y, eye.r));
+				}
+			}
+		}
+		function createEyesLeft(){
+			counter = 0
+			for(let i = 0 ; i < numberOfEyes && counter < protection ; i++ , counter++){
+				let eye = {
+					r : between(10, 70),
+				};
+				eye.x = between(eye.r, 100);
+				eye.y = between(eye.r, canvas.height - eye.r);
+			
+
+				for(let j = 0 ; j < eyes.length ; j++){
+					let dx = eye.x - eyes[j].x;
+					let dy = eye.y - eyes[j].y;
+					let distance = Math.hypot(dx, dy) - eye.r - eyes[j].r;
+					if(distance < 1){
+						overlapping = true;
+						break;
+					}
+				}
+				if(overlapping){
+					overlapping = false;
+					i--;
+				}
+				else{
+					eyes.push(new Eye(eye.x, eye.y, eye.r));
+				}
+			}
+		}
+
+
+		function createEyesOnEdges(){
+			createEyesTop();
+			createEyesRight();
+			createEyesBottom();
+			createEyesLeft();
+		}
+
+		function createEyesEverywhere(){
+			counter = 0
+			for(let i = 0 ; i < numberOfEyes && counter < protection ; i++ , counter++){
+				let eye = {
+					r : between(10, 70),
+				};
+				eye.x = between(eye.r, canvas.width - eye.r);
+				eye.y = between(eye.r, canvas.height - eye.r);
+			
+
+				for(let j = 0 ; j < eyes.length ; j++){
+					let dx = eye.x - eyes[j].x;
+					let dy = eye.y - eyes[j].y;
+					let distance = Math.hypot(dx, dy) - eye.r - eyes[j].r;
+					if(distance < 1){
+						overlapping = true;
+						break;
+					}
+				}
+				if(overlapping){
+					overlapping = false;
+					i--;
+				}
+				else{
+					eyes.push(new Eye(eye.x, eye.y, eye.r));
+				}
+			}
+		}
+
+		function init(){
+			eyes = [];
+			createEyesEverywhere();
+		}init();
+		
+		function animate(){
+			c.clearRect(0, 0, canvas.width, canvas.height);
+			eyes.forEach(eye=>{
+				eye.update();
+				eye.draw();
+			});
+			
+			requestAnimationFrame(animate);
+		}animate();
+
+		function between(min, max){
+			return Math.random() * (max - min) + min;
+		}
+
+	</script>
+</body>
+</html>

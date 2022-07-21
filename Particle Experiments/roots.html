@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Roots and Nature </title>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		#canvas{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			/*filter: invert(100%) drop-shadow(10px 10px #303) drop-shadow(-10px -10px #303) drop-shadow(-10px 10px #303) drop-shadow(10px -10px #303);*/
+			/*filter: invert(100%) drop-shadow(10px 10px #303) drop-shadow(-10px -10px #303) drop-shadow(-10px 10px #303) drop-shadow(10px -10px #303);*/
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id="canvas"></canvas>
+
+	<script>
+		const c = canvas.getContext('2d');
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+
+		window.addEventListener("resize",()=>{
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+		})
+
+	////////////////////////////////////////
+
+		let mouse = {
+			x:null,
+			y:null,
+			r:30,
+		};
+
+		let clicked = false;
+		window.addEventListener("mousedown",(e)=>{
+			clicked = true;
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+			generateRoots(5);
+		})
+		window.addEventListener("mouseup",()=>{
+			clicked = false;
+		})
+		window.addEventListener("mousemove",(e)=>{
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+			if(clicked){
+				generateRoots(2);
+			}
+
+		})
+
+		c.fillStyle = "#0a0";
+		c.strokeStyle = "#000";
+		c.lineWidth = 1.5;
+
+		// c.globalCompositeOperation = "destination-over"; //very good
+
+		/*
+		great combination:
+		c.globalCompositeOperation = "lighter"; 
+		
+		filter: drop-shadow(10px 10px);
+		*/
+
+		
+		// great filter:
+		// filter: drop-shadow(10px 10px #0a0);
+		
+
+		
+		// THIS IS AWESOME but lagy	
+		// c.globalCompositeOperation = "lighter"; //very good
+
+		// filter: invert(100%) drop-shadow(10px 10px #303) drop-shadow(-10px -10px #303) drop-shadow(-10px 10px #303) drop-shadow(10px -10px #303);
+
+		// you can also use the xor GCO with this and it's even better
+		
+
+
+	/////////////////////////////////////////
+
+
+		class Particle{
+			constructor(r, v, clr){
+				this.x = mouse.x;
+				this.y = mouse.y;
+				this.r = r;
+				this.v = v;
+				this.clr = clr;
+				this.angle = 0;
+			}
+
+
+			draw(){
+				c.beginPath();
+				c.arc(this.x, this.y, this.r, 0, Math.PI*2, false);
+				c.fillStyle = this.clr;
+				c.fill();
+				c.stroke();
+				c.closePath();
+			}
+
+			update(){				
+
+				if(this.r > 1){
+					this.draw();
+					this.angle += this.v.angle;
+					this.x += this.v.x + Math.sin(this.angle);
+					this.y += this.v.y + Math.sin(this.angle);
+					this.r += this.v.r;
+					requestAnimationFrame(this.update.bind(this));
+				}
+			}
+		}
+
+
+
+		function between(min = 0, max = 1){
+			return Math.random() * (max - min) + min;
+		}
+
+		function randomSign(){
+			return (Math.random() - 0.5 < 0) ? -1 : 1;
+		}
+
+		let particles = [];
+
+		function generateRoots(n){
+			for(let i = 0 ; i < n ; i++){
+				let r = between(25, 35);
+				let	v = {
+						x : between(-2, 2) ,
+						y : between(-2, 2) * randomSign(),
+						r : between(-0.2, -0.9),
+						angle : between(0.08, 0.5),
+					};
+				let	clr = `hsl(${between(80, 150)}, ${between(50, 70)}%, ${between(30, 50)}%)`;
+				let particle = new Particle(r, v, clr);
+				particles.push(particle);
+				particle.update();	
+			}	
+		}
+
+	</script>
+
+</body>
+</html>

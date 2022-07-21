@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>
+		DOM GENERATIVE ART
+	</title>
+	<style>
+		*{
+			margin: 0;
+			box-sizing: border-box;
+		}
+		body{
+			display: grid;
+			place-items: center;
+			min-height: 100vh;
+			overflow: hidden;
+		}
+		.container{
+			width: 100%;
+			height: 100%;
+			position: relative;
+			/*filter:  blur(50px);*/
+		}
+		.container>*::after{
+			content: "";
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			border-radius: inherit;
+			width: inherit;
+			height: inherit;
+			background: radial-gradient(rgba(255, 255, 255, .35), transparent);
+		}
+
+	</style>
+</head>
+<body>
+
+	<div class="container"></div>
+
+	<script>
+		const qs = (e) => document.querySelector(e);
+
+		const container = qs(".container");
+
+		let WIDTH = parseInt(getComputedStyle(container).width);
+		let HEIGHT = parseInt(getComputedStyle(container).height);
+		window.addEventListener("resize",()=>{
+			WIDTH = parseInt(getComputedStyle(container).width);
+			HEIGHT = parseInt(getComputedStyle(container).height);
+		});
+
+
+		let raf, round = 1, numberOfShapes = 400;
+
+
+		function createRandomDomShape(){
+			const width = Math.floor(between(10, 250)),
+			      height = Math.floor(between(10, 150)),
+			      top =  `${Math.floor(between(0, HEIGHT - height))}px`,
+			      left =  `${Math.floor(between(0, WIDTH - width))}px`,
+			      radius = (Math.abs(width - height) > 100) ||  (Math.random() < 0.5) ? '0px' : '50%';
+			
+			let startHue = ( (round-1) * 60 ) % 360;
+			let endHue = ( round * 60 ) % 360;
+			endHue = endHue ==0 ? 360 : endHue;
+			const hue = Math.floor(between(startHue, endHue));
+
+			const shape = document.createElement("div");
+			container.appendChild(shape);
+			shape.style.position = "absolute";
+			shape.style.width = `${width}px`;
+			shape.style.height = `${height}px`;
+			shape.style.top = Math.random() < 0.5 ? "100%" : "-100%";
+			shape.style.left = left;
+			shape.style.borderRadius = radius;
+			shape.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+			shape.style.border = `2px solid hsl(${hue}, 100%, 30%)`;
+			shape.style.transform = `scale(.1)`;
+			setTimeout(function(){
+				shape.style.transition = "transform .35s 2s, top .35s";
+				shape.style.transform = "scale(1)";
+				shape.style.top = top;
+			}, 0);
+		}
+
+		function between(min = 0, max = 1){
+			return Math.random() * (max - min) + min;
+		}
+
+		function generateArt(){
+			if(raf >= numberOfShapes * round){
+				round++;
+				container.innerHTML = "";
+			}
+			createRandomDomShape();
+			raf = requestAnimationFrame(generateArt);
+		}
+		generateArt();
+
+	</script>
+
+</body>
+</html>
+
+
+
+
