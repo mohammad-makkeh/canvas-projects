@@ -63,7 +63,7 @@ let breaks = false;
 let fire = false; //for the riffleGun
 let alreadyHarder = false;
 let fireRate = 4;
-let difficulty = 7;
+let difficulty = 15;
 let waveRate = 1000;
 let interval;
 let friction = 0.85;
